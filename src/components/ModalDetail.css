@@ -1,0 +1,94 @@
+/* ============================================================
+   BLOODLINK — SHARED MODAL DETAIL STYLES
+   ============================================================ */
+
+/* Used by RequestDetailModal and DonorDetailModal */
+.req-detail-grid,
+.donor-detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4);
+}
+.req-detail-block,
+.donor-detail-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.req-notes-block {
+  padding: var(--space-3) var(--space-4);
+  background: var(--bg-secondary);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-default);
+}
+
+/* Timeline */
+.req-timeline {
+  padding: var(--space-4);
+  background: var(--bg-secondary);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-default);
+}
+.req-timeline-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0;
+}
+.req-timeline-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  position: relative;
+}
+.req-timeline-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--border-emphasis);
+  border: 2px solid var(--border-emphasis);
+  z-index: 1;
+  flex-shrink: 0;
+}
+.req-timeline-dot.past {
+  background: var(--sage-muted);
+  border-color: var(--sage);
+}
+.req-timeline-dot.current {
+  background: var(--oxblood);
+  border-color: var(--oxblood-light);
+  box-shadow: 0 0 0 3px rgba(121, 61, 74, 0.2);
+}
+.req-timeline-label {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  margin-top: var(--space-2);
+  text-align: center;
+  font-weight: var(--weight-medium);
+}
+.req-timeline-label.current-label {
+  color: var(--rose-muted);
+  font-weight: var(--weight-semibold);
+}
+.req-timeline-connector {
+  position: absolute;
+  top: 5px;
+  left: 50%;
+  right: -50%;
+  height: 2px;
+  background: var(--border-emphasis);
+  z-index: 0;
+}
+.req-timeline-connector.filled {
+  background: var(--sage-muted);
+}
+
+@media (max-width: 480px) {
+  .req-detail-grid,
+  .donor-detail-grid {
+    grid-template-columns: 1fr;
+  }
+  .req-timeline-label {
+    font-size: 10px;
+  }
+}
