@@ -1,0 +1,46 @@
+/* ============================================================
+   BLOODLINK — REQUESTS PAGE STYLES
+   ============================================================ */
+
+/* Status pills */
+.req-status-pills {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  margin-bottom: var(--space-4);
+}
+.req-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 5px var(--space-3);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-full);
+  font-family: var(--font-body);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: background var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast);
+}
+.req-status-pill:hover {
+  background: var(--surface-elevated);
+  color: var(--text-secondary);
+}
+.req-status-pill.active {
+  background: var(--oxblood-surface);
+  border-color: var(--oxblood-muted);
+  color: var(--rose-muted);
+}
+.req-status-pill-count {
+  background: var(--surface-elevated);
+  border-radius: var(--radius-full);
+  padding: 1px 5px;
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+}
+.req-status-pill.active .req-status-pill-count {
+  background: var(--oxblood-muted);
+  color: var(--rose-muted);
+}
