@@ -1,54 +1,66 @@
 # 🩸 BloodLink — Real-Time Blood & Organ Donor Matching System
 
-> **"In emergencies, patients and families lose critical time searching for blood or organ donors through phone calls and social media, with no real-time visibility of hospital blood stock or donor availability. BloodLink is an OOP- and DBMS-based system that maintains live blood inventory across hospitals, matches patients with compatible nearby donors, and tracks donations, expiry, and requests to save lives faster."**
+> **Problem Statement:** In emergencies, patients and families lose critical time searching for blood and organ donors through phone calls and social media, with no real-time visibility of hospital blood stock or donor availability. BloodLink is an OOP- and DBMS-based system that maintains blood inventory, matches patients with compatible nearby donors, and tracks donations, expiry, and emergency requests to help save lives faster.
+
+---
+
+## 📌 Project Overview
+
+BloodLink is a demo application that matches voluntary blood donors with hospitals that need blood. It provides a dashboard for donor information, hospital blood inventory, emergency requests, and reports.
+
+### Key Features
+
+- **Real-Time Blood Stock:** Monitor all 8 standard blood groups: A+, A-, B+, B-, AB+, AB-, O+, and O-.
+- **Compatibility Matching:** Match donors and recipients using blood compatibility rules.
+- **Emergency Request Dispatch:** Prioritize requests according to urgency: Critical, High, Normal, and Low.
+- **Low Stock Alerts:** Identify inventory that reaches or falls below its configured threshold.
+- **Donation Eligibility:** Track donation dates and the configured 90-day eligibility gap.
+- **Reports:** View donor availability, inventory summaries, emergency requests, and low-stock records.
+
+*Note: This is an academic demo. Blood compatibility and donation eligibility must be verified by qualified medical professionals before real-world use.*
 
 ---
 
 ## 👥 Team & Responsibilities
 
-| Team Member | Role | Branch | Key Deliverables |
-| :--- | :--- | :--- | :--- |
-| **Harini** | Frontend Engineering | `Harini` | React 19 + Vite dashboard, responsive UI, glassmorphic design, Modals, Recharts |
-| **Hirish** | Java Backend & OOP | `backend-hirish` | Spring Boot REST controllers, OOP models, DTOs, Immunological compatibility engine |
-| **Hemanth** | Database & SQL | `Hemanth` | MySQL relational schema, constraints, views, sample data, audit reports |
-| **[Guruj30 (Gurumoorthy_j)](https://github.com/Guruj30)** | Integration, Testing & GitHub | `Gurumoorthy` | JDBC persistence (`JdbcTemplate`), MySQL connection, Frontend-Backend integration, Test suite |
+| Team Member | Role | Branch | Responsibilities |
+|---|---|---|---|
+| Harini | Frontend Engineering | `Harini` | React dashboard, responsive UI, modals, and charts |
+| Hirish | Java Backend & OOP | `backend-hirish` | Spring Boot REST APIs, OOP models, DTOs, and compatibility rules |
+| Hemanth | Database & SQL | `Hemanth` | MySQL schema, constraints, sample data, views, and reports |
+| Guruj30 (Gurumoorthy_j) | Integration & Testing | `Gurumoorthy` | JDBC persistence, database connection, frontend-backend integration, and testing |
 
----
-
-## 🌟 Key Objectives & Features
-
-- **⚡ Real-Time Blood Stock:** Group-by-group monitoring across all 8 standard blood groups (A+, A-, B+, B-, AB+, AB-, O+, O-).
-- **🩸 Compatibility Matching:** Immunological auto-matching (O- universal donor, AB+ universal recipient) for red cells and plasma.
-- **🚨 Emergency Request Dispatch:** Urgency prioritization (`Critical` > `High` > `Normal` > `Low`) with deterministic tie-breaking.
-- **🕒 Expiry & Stock Tracking:** Low stock alerting with threshold gauges and safe stock deduction upon fulfillment.
-- **📜 90-Day Donor Eligibility Gap:** Tracks donor history and enforces recovery gaps before donation re-eligibility.
+GitHub: https://github.com/Guruj30
 
 ---
 
 ## 🏗️ Architecture & Technology Stack
 
-```
-   ┌─────────────────────────────────────────────────────────┐
-   │             React 19 + Vite Frontend (Port 5173)         │
-   │  Overview | Donors | Inventory | Requests | Reports     │
-   └────────────────────────────┬────────────────────────────┘
-                                │ HTTP / JSON (CORS)
-   ┌────────────────────────────▼────────────────────────────┐
-   │         Java Spring Boot 3.3 REST API (Port 8080)        │
-   │  Controllers → Services → Rule Engines → DTO Validation │
-   └────────────────────────────┬────────────────────────────┘
-                                │ JDBC (PreparedStatement / JdbcTemplate)
-   ┌────────────────────────────▼────────────────────────────┐
-   │              MySQL 8.0+ Relational Database              │
-   │  Tables: donors, blood_inventory, emergency_requests    │
-   │  Views: low_stock_report                                │
-   └─────────────────────────────────────────────────────────┘
+```text
+┌──────────────────────────────────────────────┐
+│          React + Vite Frontend               │
+│   Overview | Donors | Inventory | Requests    │
+└──────────────────────┬───────────────────────┘
+                       │ HTTP / JSON
+┌──────────────────────▼───────────────────────┐
+│          Java Spring Boot REST API            │
+│   Controllers → Services → Validation         │
+└──────────────────────┬───────────────────────┘
+                       │ JDBC
+┌──────────────────────▼───────────────────────┐
+│              MySQL Database                   │
+│ donors | blood_inventory | emergency_requests│
+│              low_stock_report                 │
+└───────────────────────────────────────────────┘
 ```
 
-- **Frontend:** React 19, Vite 8, React Router v7, Lucide Icons, Recharts.
-- **Backend:** Java 21, Spring Boot 3.3.5, Spring JDBC, Spring Validation.
-- **Database:** MySQL Server 8.0+, InnoDB engine, UTF-8.
-- **Driver:** MySQL Connector/J (`mysql-connector-j`).
+| Layer | Technologies |
+|---|---|
+| Frontend | React 19, Vite, React Router, Lucide Icons, Recharts |
+| Backend | Java 21, Spring Boot, Spring JDBC, Spring Validation |
+| Database | MySQL 8.0+, InnoDB |
+| Database Driver | MySQL Connector/J |
+| Integration | REST API, HTTP/JSON, JDBC |
 
 ---
 
@@ -56,115 +68,261 @@
 
 ```text
 Blood_Link/
-├── backend/                       # Java Spring Boot Backend (Port 8080)
+├── backend/
 │   ├── src/main/java/com/bloodlink/
-│   │   ├── config/                # WebConfig (CORS), Database configs
-│   │   ├── controller/            # REST Controllers (Donors, Inventory, Requests, Health)
-│   │   ├── dto/                   # Inbound / Outbound DTOs with Bean Validation
-│   │   ├── exception/             # GlobalExceptionHandler & Custom domain exceptions
-│   │   ├── model/                 # OOP Domain models (Person, Donor, BloodUnit, Patient, etc.)
-│   │   ├── repository/            # Repository interfaces
-│   │   │   ├── inmemory/          # Fallback in-memory repositories (for testing)
-│   │   │   └── jdbc/              # JDBC repositories connected to MySQL (Member 4 Integration)
-│   │   └── service/               # Business logic & CompatibilityRuleEngine
-│   ├── src/main/resources/        # application.properties (JDBC & Server config)
-│   └── pom.xml                    # Maven build configuration
+│   │   ├── config/
+│   │   ├── controller/
+│   │   ├── dto/
+│   │   ├── exception/
+│   │   ├── model/
+│   │   ├── repository/
+│   │   │   ├── inmemory/
+│   │   │   └── jdbc/
+│   │   └── service/
+│   ├── src/main/resources/
+│   │   └── application.properties
+│   └── pom.xml
 │
-├── database/                      # MySQL Database Scripts (Member 3 & Member 4)
-│   ├── 01_create_database.sql     # Database creation ('bloodlink')
-│   ├── 02_create_tables.sql       # Relational tables: donors, blood_inventory, emergency_requests
-│   ├── 03_sample_data.sql         # Fictional demo sample records
-│   ├── 04_queries.sql             # Diagnostic queries
-│   ├── 05_views.sql               # 'low_stock_report' view
-│   ├── 06_reports.sql             # SQL aggregate and clinical reports
-│   └── README.md                  # Database execution instructions
+├── database/
+│   ├── 01_create_database.sql
+│   ├── 02_create_tables.sql
+│   ├── 03_sample_data.sql
+│   ├── 04_queries.sql
+│   ├── 05_views.sql
+│   ├── 06_reports.sql
+│   └── README.md
 │
-├── integration/                   # Integration Deliverables (Member 4)
-│   ├── API_CONTRACT.md            # Frontend <-> Backend <-> MySQL mapping
-│   ├── TEST_PLAN.md               # End-to-end test cases and strategy
-│   └── TEST_RESULTS.md            # Verified test results matrix
+├── integration/
+│   ├── API_CONTRACT.md
+│   ├── TEST_PLAN.md
+│   └── TEST_RESULTS.md
 │
-├── src/                           # React + Vite Frontend (Port 5173)
-│   ├── components/                # Reusable UI modals and sidebar
-│   ├── pages/                     # Overview, Donors, Inventory, Requests, Manage, Reports
-│   └── services/AppStore.jsx      # Unified AppStore with live REST API sync
+├── src/
+│   ├── components/
+│   ├── pages/
+│   └── services/
+│       └── AppStore.jsx
 │
-├── index.html                     # HTML Entry point
-├── package.json                   # Frontend dependencies
-└── README.md                      # Consolidated documentation
+├── index.html
+├── package.json
+└── README.md
 ```
 
 ---
 
-## 🚀 Quick Start Guide
+# 🗄️ Database Documentation
 
-### Prerequisites
-- **JDK 21+**
-- **Node.js 18+** & npm
-- **MySQL Server 8.0+**
+## 1. Database Overview
 
----
+The database is named `bloodlink` and contains three primary tables.
 
-### Step 1: Initialize the MySQL Database
-Open MySQL Workbench or your terminal:
+| Table | Purpose |
+|---|---|
+| `donors` | Stores donor IDs, names, blood groups, cities, phone numbers, availability, donation dates, registration dates, and optional notes. |
+| `blood_inventory` | Stores blood groups, available units, low-stock thresholds, and update timestamps. |
+| `emergency_requests` | Stores requested blood groups, required units, hospital details, locations, urgency, request status, creation time, requester names, and optional notes. |
+
+## 2. Database Scripts
+
+| File | Purpose |
+|---|---|
+| `01_create_database.sql` | Creates the `bloodlink` database and selects it. |
+| `02_create_tables.sql` | Creates the three primary tables. |
+| `03_sample_data.sql` | Inserts fictional demonstration records. |
+| `04_queries.sql` | Provides example queries for exploring the data. |
+| `05_views.sql` | Creates the `low_stock_report` view. |
+| `06_reports.sql` | Provides inventory, donor, request, and low-stock reports. |
+| `README.md` | Documents database setup and execution. |
+
+## 3. Database Prerequisites
+
+- MySQL Server 8.0 or later
+- MySQL Workbench or another MySQL client
+- The SQL files in the `database/` directory
+
+## 4. Execution Order
+
+Run the scripts in this order:
+
+1. `01_create_database.sql`
+2. `02_create_tables.sql`
+3. `03_sample_data.sql`
+4. `04_queries.sql`
+5. `05_views.sql`
+6. `06_reports.sql`
+
+The first script creates the database. The remaining scripts should select the `bloodlink` database before executing database-specific statements.
+
+### Running SQL files in MySQL Workbench
+
+1. Open MySQL Workbench and connect to your MySQL Server.
+2. Select **File → Open SQL Script**.
+3. Open the required `.sql` file from the `database/` directory.
+4. Click the lightning-bolt **Execute** button.
+5. Check the output panel for errors and query results.
+6. Repeat for the remaining files in the specified order.
+
+Alternatively, from a terminal in the project root:
+
 ```bash
 mysql -u root -p < database/01_create_database.sql
-mysql -u root -p bloodlink < database/02_create_tables.sql
-mysql -u root -p bloodlink < database/03_sample_data.sql
-mysql -u root -p bloodlink < database/05_views.sql
+mysql -u root -p < database/02_create_tables.sql
+mysql -u root -p < database/03_sample_data.sql
+mysql -u root -p < database/05_views.sql
+mysql -u root -p < database/04_queries.sql
+mysql -u root -p < database/06_reports.sql
 ```
+
+Enter your MySQL password when prompted. The command order above creates the view before running reports and queries the database scripts in a valid sequence.
+
+## 5. Verifying the Tables
+
+Run:
+
+```sql
+USE bloodlink;
+SHOW TABLES;
+```
+
+The expected tables are:
+
+```text
+donors
+blood_inventory
+emergency_requests
+```
+
+## 6. Verifying Sample Data
+
+```sql
+USE bloodlink;
+
+SELECT * FROM donors;
+SELECT * FROM blood_inventory;
+SELECT * FROM emergency_requests;
+```
+
+These queries display the available records in the three primary tables.
+
+## 7. Testing the Low-Stock View
+
+```sql
+SELECT * FROM low_stock_report;
+```
+
+The view should return inventory records where `units <= low_threshold`. If the sample data contains a B- inventory record with zero units, that record should appear when its low-stock threshold is zero or greater.
+
+## 8. Why Use `INSERT IGNORE`?
+
+`INSERT IGNORE` allows MySQL to skip conflicting rows in certain situations, including duplicate primary keys, rather than stopping with a duplicate-key error.
+
+This helps make sample-data scripts easier to rerun. However, it does not update existing records, and other invalid values may also be handled differently from ordinary `INSERT` statements.
 
 ---
 
-### Step 2: Start the Java Backend
-Navigate to the `backend/` folder:
+# 🚀 Quick Start Guide
+
+## Prerequisites
+
+Install and configure:
+
+- JDK 21 or a compatible version required by the backend
+- Node.js and npm compatible with the frontend dependencies
+- MySQL Server 8.0+
+- MySQL Workbench
+- Git
+
+## Step 1: Initialize the Database
+
+Run the database scripts in the execution order described above.
+
+Verify that the tables and sample records exist before starting the backend.
+
+## Step 2: Configure the Java Backend
+
+Open a terminal in the project root and navigate to the backend:
+
 ```powershell
 cd backend
+```
 
-# If your MySQL root password is not 'password', set DB_PASSWORD:
+Configure the database URL, username, and password in `src/main/resources/application.properties` or through the environment variables supported by the application.
+
+For example, if the backend uses `DB_USERNAME` and `DB_PASSWORD`:
+
+```powershell
+$env:DB_USERNAME = "root"
 $env:DB_PASSWORD = "your_mysql_password"
+```
 
-# Run Spring Boot:
+Do not commit real passwords to GitHub.
+
+Start the backend using the project's Maven wrapper, if available:
+
+```powershell
 .\mvnw.cmd spring-boot:run
 ```
-*(On Linux/macOS: `./mvnw spring-boot:run`)*
 
-Check health endpoint:
-Open [http://localhost:8080/api/health](http://localhost:8080/api/health). You should see:
-```json
-{
-  "status": "UP",
-  "service": "bloodlink-backend",
-  "version": "1.0.0",
-  "persistenceMode": "JDBC_MYSQL"
-}
+On Linux or macOS:
+
+```bash
+./mvnw spring-boot:run
 ```
 
----
+Check the health endpoint, if implemented:
 
-### Step 3: Start the React Frontend
-In a new terminal, from the project root:
+http://localhost:8080/api/health
+
+The endpoint should return the application's health information when the backend is running.
+
+## Step 3: Start the Frontend
+
+Open a second terminal in the project root:
+
 ```bash
 npm install
 npm run dev
 ```
-Open [http://localhost:5173](http://localhost:5173) in your browser.
+
+Open the local address printed by Vite, usually:
+
+http://localhost:5173
 
 ---
 
-## 🧪 Verification & End-to-End Testing
+# 🧪 Verification & Testing
 
-1. **Donor Creation:** Open the Donors page, click **Register Donor**, fill in the details, and click submit. The record is persisted into the MySQL `donors` table.
-2. **Persistence Test:** Hard-refresh the browser (`Ctrl+F5`). The newly created donor persists.
-3. **Emergency Request:** Create an urgent request from the Requests tab; verify it is saved into `emergency_requests`.
-4. **Fulfillment:** Update the status to `fulfilled`. Blood stock in `blood_inventory` automatically decrements.
-5. **Offline Fallback:** If the Java backend is temporarily stopped, the React UI gracefully utilizes offline local storage without crashing.
+Use these checks to verify the integrated application:
+
+1. **Donor Creation:** Register a donor and confirm that the record is saved in the `donors` table.
+2. **Persistence:** Refresh the frontend and verify that the donor remains available.
+3. **Emergency Request:** Create a request and confirm that it appears in `emergency_requests`.
+4. **Fulfillment:** Mark a request as fulfilled and verify that the inventory is updated correctly, if automatic deduction is implemented.
+5. **Low Stock:** Reduce inventory to the configured threshold and verify the `low_stock_report` view.
+6. **Offline Behavior:** Test whether the frontend handles backend unavailability according to the implemented fallback behavior.
+
+These are verification steps; the results should be marked as passed only after testing them in the running application.
 
 ---
 
-## 🔒 Security & Best Practices
+# 🔒 Security & Best Practices
 
-- **Zero Hardcoded Passwords:** Database credentials use dynamic environment variable substitution (`${DB_USERNAME:root}` / `${DB_PASSWORD:password}`).
-- **Parameterized SQL:** All JDBC operations strictly use `PreparedStatement` / `JdbcTemplate` to prevent SQL Injection.
-- **CORS Restricted:** Backend only permits requests from the authorized frontend origin (`http://localhost:5173`).
-- **Academic Disclaimer:** Compatibility matching rules are operational dispatch models and do not replace formal clinical immunohematology testing.
+- **Credentials:** Keep database passwords out of source control and use environment variables or secure configuration.
+- **Parameterized SQL:** Use prepared statements or `JdbcTemplate` parameter binding to reduce SQL injection risks.
+- **CORS:** Configure allowed frontend origins according to the deployment environment.
+- **Validation:** Validate donor information, blood units, urgency levels, and request statuses.
+- **Transactions:** Use database transactions when fulfilling requests requires multiple related updates.
+- **Data Integrity:** Use primary keys, foreign keys, appropriate constraints, and transactions wherever applicable.
+- **Medical Safety:** Treat compatibility matching as a demonstration rule engine, not a substitute for clinical testing or professional medical judgment.
+
+---
+
+## 📌 Important Note for Developers
+
+The SQL scripts create the database objects and load sample data. They do not automatically connect the Java backend to MySQL.
+
+The backend must have a valid JDBC configuration, the MySQL Connector/J dependency, and repository implementations that use the configured database. Features such as automatic stock deduction, offline fallback, and compatibility matching depend on the actual application implementation.
+
+---
+
+**Happy coding! 🩸**
