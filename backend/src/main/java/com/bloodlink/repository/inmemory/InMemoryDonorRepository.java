@@ -4,6 +4,7 @@ import com.bloodlink.model.AvailabilityStatus;
 import com.bloodlink.model.BloodGroup;
 import com.bloodlink.model.Donor;
 import com.bloodlink.repository.DonorRepository;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
@@ -15,9 +16,10 @@ import java.util.stream.Collectors;
 /**
  * Thread-safe in-memory implementation of DonorRepository.
  * Populated with realistic fictional demo seed data matching the frontend's seedData.js.
- * Serves as an operational mock while the database team finalizes the approved MySQL schema.
+ * Serves as an operational mock for testing or offline execution.
  */
 @Repository
+@ConditionalOnProperty(name = "bloodlink.persistence.mode", havingValue = "IN_MEMORY", matchIfMissing = false)
 public class InMemoryDonorRepository implements DonorRepository {
 
     private final Map<String, Donor> storage = new ConcurrentHashMap<>();
@@ -48,37 +50,37 @@ public class InMemoryDonorRepository implements DonorRepository {
                 LocalDate.of(2024, 2, 14), "Demo record");
         addSeed("D-10047", "Suresh Babu", BloodGroup.B_NEGATIVE, "Salem", "+91-98400-00007",
                 AvailabilityStatus.AVAILABLE, LocalDate.of(2026, 3, 30), LocalDate.of(2026, 6, 30),
-                LocalDate.of(2024, 7, 1), "Demo record");
-        addSeed("D-10048", "Anitha Sundaram", BloodGroup.AB_NEGATIVE, "Coimbatore", "+91-98400-00008",
-                AvailabilityStatus.UNAVAILABLE, LocalDate.of(2026, 10, 1), LocalDate.of(2027, 1, 1),
-                LocalDate.of(2025, 3, 5), "Demo record");
-        addSeed("D-10049", "Vijay Shankar", BloodGroup.O_POSITIVE, "Madurai", "+91-98400-00009",
-                AvailabilityStatus.AVAILABLE, LocalDate.of(2026, 2, 22), LocalDate.of(2026, 5, 22),
-                LocalDate.of(2023, 6, 12), "Demo record");
-        addSeed("D-10050", "Meena Gopalan", BloodGroup.A_POSITIVE, "Trichy", "+91-98400-00010",
-                AvailabilityStatus.ON_LEAVE, LocalDate.of(2026, 7, 8), LocalDate.of(2026, 10, 8),
-                LocalDate.of(2024, 9, 30), "Demo record");
-        addSeed("D-10051", "Ganesh Murugan", BloodGroup.B_POSITIVE, "Chennai", "+91-98400-00011",
-                AvailabilityStatus.AVAILABLE, LocalDate.of(2026, 5, 15), LocalDate.of(2026, 8, 15),
-                LocalDate.of(2023, 12, 18), "Demo record");
-        addSeed("D-10052", "Revathi Pillai", BloodGroup.O_NEGATIVE, "Vellore", "+91-98400-00012",
-                AvailabilityStatus.AVAILABLE, LocalDate.of(2026, 6, 28), LocalDate.of(2026, 9, 28),
-                LocalDate.of(2025, 2, 25), "Demo record");
-        addSeed("D-10053", "Mano Bharathi", BloodGroup.AB_POSITIVE, "Salem", "+91-98400-00013",
-                AvailabilityStatus.UNAVAILABLE, LocalDate.of(2026, 9, 10), LocalDate.of(2026, 12, 10),
-                LocalDate.of(2024, 4, 17), "Demo record");
-        addSeed("D-10054", "Pavithra Rajan", BloodGroup.A_NEGATIVE, "Chennai", "+91-98400-00014",
-                AvailabilityStatus.AVAILABLE, LocalDate.of(2026, 4, 1), LocalDate.of(2026, 7, 1),
-                LocalDate.of(2024, 8, 3), "Demo record");
-        addSeed("D-10055", "Siva Chandran", BloodGroup.B_POSITIVE, "Madurai", "+91-98400-00015",
-                AvailabilityStatus.AVAILABLE, LocalDate.of(2026, 3, 12), LocalDate.of(2026, 6, 12),
-                LocalDate.of(2023, 10, 22), "Demo record");
+                LocalDate.of(2023, 5, 19), "Demo record");
+        addSeed("D-10048", "Meera Sundaram", BloodGroup.AB_NEGATIVE, "Tirunelveli", "+91-98400-00008",
+                AvailabilityStatus.AVAILABLE, LocalDate.of(2026, 2, 11), LocalDate.of(2026, 5, 11),
+                LocalDate.of(2024, 8, 30), "Demo record");
+        addSeed("D-10049", "Vignesh Kumar", BloodGroup.O_POSITIVE, "Coimbatore", "+91-98400-00009",
+                AvailabilityStatus.AVAILABLE, LocalDate.of(2026, 7, 28), LocalDate.of(2026, 10, 28),
+                LocalDate.of(2024, 1, 12), "Demo record");
+        addSeed("D-10050", "Ananya Venkatesh", BloodGroup.A_POSITIVE, "Chennai", "+91-98400-00010",
+                AvailabilityStatus.UNAVAILABLE, LocalDate.of(2026, 9, 15), LocalDate.of(2026, 12, 15),
+                LocalDate.of(2024, 9, 1), "Demo record");
+        addSeed("D-10051", "Balaji Natarajan", BloodGroup.B_POSITIVE, "Madurai", "+91-98400-00011",
+                AvailabilityStatus.AVAILABLE, LocalDate.of(2026, 6, 22), LocalDate.of(2026, 9, 22),
+                LocalDate.of(2023, 7, 4), "Demo record");
+        addSeed("D-10052", "Kavitha Raman", BloodGroup.O_NEGATIVE, "Vellore", "+91-98400-00012",
+                AvailabilityStatus.AVAILABLE, LocalDate.of(2026, 1, 19), LocalDate.of(2026, 4, 19),
+                LocalDate.of(2024, 4, 18), "Demo record");
+        addSeed("D-10053", "Siddharth Rao", BloodGroup.A_NEGATIVE, "Chennai", "+91-98400-00013",
+                AvailabilityStatus.AVAILABLE, LocalDate.of(2026, 5, 8), LocalDate.of(2026, 8, 8),
+                LocalDate.of(2024, 6, 25), "Demo record");
+        addSeed("D-10054", "Gayathri Shankaran", BloodGroup.O_POSITIVE, "Erode", "+91-98400-00014",
+                AvailabilityStatus.UNAVAILABLE, LocalDate.of(2026, 8, 31), LocalDate.of(2026, 11, 30),
+                LocalDate.of(2023, 10, 11), "Demo record");
+        addSeed("D-10055", "Prashanth Murali", BloodGroup.AB_POSITIVE, "Chennai", "+91-98400-00015",
+                AvailabilityStatus.AVAILABLE, LocalDate.of(2026, 4, 2), LocalDate.of(2026, 7, 2),
+                LocalDate.of(2025, 2, 1), "Demo record");
     }
 
     private void addSeed(String id, String name, BloodGroup bg, String city, String phone,
-                         AvailabilityStatus avail, LocalDate lastDonation, LocalDate eligibleAfter,
-                         LocalDate registered, String notes) {
-        Donor donor = new Donor(id, name, bg, city, phone, avail, lastDonation, eligibleAfter, registered, notes);
+                         AvailabilityStatus availability, LocalDate lastDonation,
+                         LocalDate eligibleAfter, LocalDate registered, String notes) {
+        Donor donor = new Donor(id, name, bg, city, phone, availability, lastDonation, eligibleAfter, registered, notes);
         storage.put(id, donor);
     }
 
@@ -95,6 +97,7 @@ public class InMemoryDonorRepository implements DonorRepository {
 
     @Override
     public Donor save(Donor donor) {
+        Objects.requireNonNull(donor, "Donor to save cannot be null");
         if (donor.getId() == null || donor.getId().trim().isEmpty()) {
             donor.setId(generateNextId());
         }
@@ -110,6 +113,7 @@ public class InMemoryDonorRepository implements DonorRepository {
 
     @Override
     public List<Donor> findByBloodGroup(BloodGroup bloodGroup) {
+        if (bloodGroup == null) return Collections.emptyList();
         return storage.values().stream()
                 .filter(d -> d.getBloodGroup() == bloodGroup)
                 .collect(Collectors.toList());
@@ -117,15 +121,15 @@ public class InMemoryDonorRepository implements DonorRepository {
 
     @Override
     public List<Donor> findByCity(String city) {
-        if (city == null || city.equalsIgnoreCase("all")) return findAll();
+        if (city == null || city.trim().isEmpty()) return Collections.emptyList();
         return storage.values().stream()
-                .filter(d -> d.getCity().equalsIgnoreCase(city.trim()))
+                .filter(d -> d.getCity() != null && d.getCity().equalsIgnoreCase(city.trim()))
                 .collect(Collectors.toList());
     }
 
     @Override
     public List<Donor> findByAvailability(AvailabilityStatus availability) {
-        if (availability == null) return findAll();
+        if (availability == null) return Collections.emptyList();
         return storage.values().stream()
                 .filter(d -> d.getAvailability() == availability)
                 .collect(Collectors.toList());
@@ -133,6 +137,6 @@ public class InMemoryDonorRepository implements DonorRepository {
 
     @Override
     public String generateNextId() {
-        return "D-" + idCounter.getAndIncrement();
+        return "D-" + idCounter.incrementAndGet();
     }
 }

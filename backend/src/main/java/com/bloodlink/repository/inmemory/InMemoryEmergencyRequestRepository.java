@@ -5,6 +5,7 @@ import com.bloodlink.model.EmergencyRequest;
 import com.bloodlink.model.RequestStatus;
 import com.bloodlink.model.UrgencyLevel;
 import com.bloodlink.repository.EmergencyRequestRepository;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
@@ -16,8 +17,10 @@ import java.util.stream.Collectors;
 /**
  * Thread-safe in-memory repository for clinical emergency requests.
  * Initialized with realistic fictional demo requests matching frontend seedData.js.
+ * Serves as an operational mock for testing or offline execution.
  */
 @Repository
+@ConditionalOnProperty(name = "bloodlink.persistence.mode", havingValue = "IN_MEMORY", matchIfMissing = false)
 public class InMemoryEmergencyRequestRepository implements EmergencyRequestRepository {
 
     private final Map<String, EmergencyRequest> storage = new ConcurrentHashMap<>();
@@ -39,16 +42,13 @@ public class InMemoryEmergencyRequestRepository implements EmergencyRequestRepos
                 LocalDateTime.of(2026, 10, 17, 15, 30), "Demo: Orthopedic simulation", "Dr. Demo Admin");
         addSeed("REQ-2021", BloodGroup.A_POSITIVE, 2, "Demo MGMGH", "Chennai",
                 UrgencyLevel.HIGH, RequestStatus.REVIEWING,
-                LocalDateTime.of(2026, 10, 17, 11, 20), "Demo: Cardiac simulation", "Dr. Demo Admin");
-        addSeed("REQ-2020", BloodGroup.O_POSITIVE, 5, "Demo GH Trichy", "Trichy",
+                LocalDateTime.of(2026, 10, 17, 12, 10), "Demo: Pediatric emergency simulation", "Dr. Demo Admin");
+        addSeed("REQ-2020", BloodGroup.O_POSITIVE, 5, "Demo KG Hospital", "Coimbatore",
                 UrgencyLevel.CRITICAL, RequestStatus.FULFILLED,
-                LocalDateTime.of(2026, 10, 16, 20, 5), "Demo: Emergency simulation", "Dr. Demo Admin");
-        addSeed("REQ-2019", BloodGroup.AB_NEGATIVE, 1, "Demo Fortis Demo", "Vellore",
-                UrgencyLevel.NORMAL, RequestStatus.CANCELLED,
-                LocalDateTime.of(2026, 10, 16, 10, 0), "Demo: Cancelled simulation", "Dr. Demo Admin");
-        addSeed("REQ-2018", BloodGroup.B_NEGATIVE, 2, "Demo CMC Demo", "Vellore",
-                UrgencyLevel.HIGH, RequestStatus.IN_PROGRESS,
-                LocalDateTime.of(2026, 10, 15, 14, 0), "Demo: In-progress simulation", "Dr. Demo Admin");
+                LocalDateTime.of(2026, 10, 16, 20, 0), "Demo: Cardiac emergency simulation", "Dr. Demo Admin");
+        addSeed("REQ-2019", BloodGroup.A_NEGATIVE, 1, "Demo Velammal Hospital", "Madurai",
+                UrgencyLevel.LOW, RequestStatus.PENDING,
+                LocalDateTime.of(2026, 10, 16, 14, 25), "Demo: Planned observation simulation", "Dr. Demo Admin");
     }
 
     private void addSeed(String id, BloodGroup bg, int units, String hospital, String loc,
@@ -71,6 +71,7 @@ public class InMemoryEmergencyRequestRepository implements EmergencyRequestRepos
 
     @Override
     public EmergencyRequest save(EmergencyRequest request) {
+        Objects.requireNonNull(request, "EmergencyRequest to save cannot be null");
         if (request.getId() == null || request.getId().trim().isEmpty()) {
             request.setId(generateNextId());
         }
@@ -86,6 +87,7 @@ public class InMemoryEmergencyRequestRepository implements EmergencyRequestRepos
 
     @Override
     public List<EmergencyRequest> findByStatus(RequestStatus status) {
+        if (status == null) return Collections.emptyList();
         return storage.values().stream()
                 .filter(r -> r.getStatus() == status)
                 .collect(Collectors.toList());
@@ -93,6 +95,7 @@ public class InMemoryEmergencyRequestRepository implements EmergencyRequestRepos
 
     @Override
     public List<EmergencyRequest> findByUrgency(UrgencyLevel urgency) {
+        if (urgency == null) return Collections.emptyList();
         return storage.values().stream()
                 .filter(r -> r.getUrgency() == urgency)
                 .collect(Collectors.toList());
@@ -100,6 +103,7 @@ public class InMemoryEmergencyRequestRepository implements EmergencyRequestRepos
 
     @Override
     public List<EmergencyRequest> findByBloodGroup(BloodGroup bloodGroup) {
+        if (bloodGroup == null) return Collections.emptyList();
         return storage.values().stream()
                 .filter(r -> r.getBloodGroup() == bloodGroup)
                 .collect(Collectors.toList());
@@ -107,6 +111,6 @@ public class InMemoryEmergencyRequestRepository implements EmergencyRequestRepos
 
     @Override
     public String generateNextId() {
-        return "REQ-" + idCounter.getAndIncrement();
+        return "REQ-" + idCounter.incrementAndGet();
     }
 }

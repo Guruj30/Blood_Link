@@ -3,6 +3,7 @@ package com.bloodlink.repository.inmemory;
 import com.bloodlink.model.BloodGroup;
 import com.bloodlink.model.BloodInventoryItem;
 import com.bloodlink.repository.BloodInventoryRepository;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
@@ -12,8 +13,10 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * Thread-safe in-memory repository for blood inventory.
  * Initialized with verified seed inventory for all 8 standard blood groups.
+ * Serves as an operational mock for testing or offline execution.
  */
 @Repository
+@ConditionalOnProperty(name = "bloodlink.persistence.mode", havingValue = "IN_MEMORY", matchIfMissing = false)
 public class InMemoryBloodInventoryRepository implements BloodInventoryRepository {
 
     private final Map<BloodGroup, BloodInventoryItem> storage = new ConcurrentHashMap<>();
@@ -40,10 +43,7 @@ public class InMemoryBloodInventoryRepository implements BloodInventoryRepositor
 
     @Override
     public List<BloodInventoryItem> findAll() {
-        // Return sorted by standard blood group order
-        List<BloodInventoryItem> list = new ArrayList<>(storage.values());
-        list.sort(Comparator.comparing(item -> item.getBloodGroup().ordinal()));
-        return list;
+        return new ArrayList<>(storage.values());
     }
 
     @Override
@@ -56,12 +56,13 @@ public class InMemoryBloodInventoryRepository implements BloodInventoryRepositor
     public Optional<BloodInventoryItem> findById(String id) {
         if (id == null) return Optional.empty();
         return storage.values().stream()
-                .filter(item -> id.equalsIgnoreCase(item.getId()))
+                .filter(i -> i.getId().equalsIgnoreCase(id.trim()))
                 .findFirst();
     }
 
     @Override
     public BloodInventoryItem save(BloodInventoryItem item) {
+        Objects.requireNonNull(item, "BloodInventoryItem to save cannot be null");
         storage.put(item.getBloodGroup(), item);
         return item;
     }
