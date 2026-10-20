@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
+  <defs>
+    <linearGradient id="bloodGrad" x1="20%" y1="10%" x2="80%" y2="90%">
+      <stop offset="0%" stop-color="#FF4D6D" />
+      <stop offset="50%" stop-color="#E60026" />
+      <stop offset="100%" stop-color="#8A0014" />
+    </linearGradient>
+    <radialGradient id="glowGrad" cx="35%" cy="30%" r="50%">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.45" />
+      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0" />
+    </radialGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="0" dy="6" stdDeviation="6" flood-color="#8A0014" flood-opacity="0.35" />
+    </filter>
+  </defs>
+  <!-- Blood Droplet -->
+  <path d="M50 8 C50 8 18 48 18 68 C18 85.67 32.33 94 50 94 C67.67 94 82 85.67 82 68 C82 48 50 8 50 8 Z"
+        fill="url(#bloodGrad)" filter="url(#shadow)" />
+  <!-- Gloss highlight -->
+  <path d="M50 16 C50 16 26 48 26 68 C26 74 28 80 32 84 C28 78 28 66 38 48 C44 38 50 24 50 16 Z"
+        fill="url(#glowGrad)" />
+  <!-- Medical Plus / Link Symbol in Center -->
+  <g fill="#FFFFFF" opacity="0.95">
+    <rect x="46" y="55" width="8" height="22" rx="4" />
+    <rect x="39" y="62" width="22" height="8" rx="4" />
+  </g>
+</svg>
