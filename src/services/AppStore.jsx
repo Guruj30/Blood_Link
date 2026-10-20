@@ -1,7 +1,7 @@
 // ============================================================
-// BLOODLINK — APP STORE (React Context + localStorage)
-// Central state management. Designed so data layer can be
-// replaced by REST API calls without rewriting page components.
+// BLOODLINK — APP STORE (React Context + REST API + Local Fallback)
+// Central state management integrated with Java REST API / MySQL.
+// Updated for Member 4 Integration & End-to-End Persistence.
 // ============================================================
 
 import { createContext, useContext, useReducer, useEffect, useCallback } from 'react';
@@ -14,6 +14,7 @@ import {
 } from '../data/seedData';
 
 const STORAGE_KEY = 'bloodlink_demo_v1';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api';
 
 // ─── Helpers ────────────────────────────────────────────────
 function loadState() {
@@ -36,12 +37,65 @@ function buildInitialState() {
       sidebarCollapsed: false,
       defaultView: 'list',
     },
+    backendConnected: false,
   };
 }
 
 // ─── Reducer ────────────────────────────────────────────────
 function reducer(state, action) {
   switch (action.type) {
+
+    // SYNC FROM BACKEND API
+    case 'INIT_FROM_API': {
+      const apiInv = action.payload.inventory && action.payload.inventory.length > 0
+        ? action.payload.inventory.map(item => ({
+            id: item.id || `bg-${item.bloodGroup}`,
+            group: item.bloodGroup,
+            bloodGroup: item.bloodGroup,
+            units: item.units,
+            lowThreshold: item.lowThreshold,
+            lastUpdated: item.lastUpdated || new Date().toISOString()
+          }))
+        : state.inventory;
+
+      const apiDonors = action.payload.donors && action.payload.donors.length > 0
+        ? action.payload.donors.map(d => ({
+            id: d.id,
+            name: d.name,
+            bloodGroup: d.bloodGroup,
+            city: d.city,
+            phone: d.phone,
+            availability: (d.availability || 'available').toLowerCase(),
+            lastDonation: d.lastDonation,
+            eligibleAfter: d.eligibleAfter,
+            registered: d.registered || new Date().toISOString().split('T')[0],
+            notes: d.notes || 'Registered donor'
+          }))
+        : state.donors;
+
+      const apiRequests = action.payload.requests && action.payload.requests.length > 0
+        ? action.payload.requests.map(r => ({
+            id: r.id,
+            bloodGroup: r.bloodGroup,
+            units: r.units,
+            hospital: r.hospital,
+            location: r.location,
+            urgency: (r.urgency || 'normal').toLowerCase(),
+            status: (r.status || 'pending').toLowerCase(),
+            createdAt: r.createdAt || new Date().toISOString(),
+            notes: r.notes || '',
+            requester: r.requester || 'Clinical Staff'
+          }))
+        : state.requests;
+
+      return {
+        ...state,
+        inventory: apiInv,
+        donors: apiDonors,
+        requests: apiRequests,
+        backendConnected: true,
+      };
+    }
 
     // INVENTORY
     case 'UPDATE_INVENTORY': {
@@ -57,9 +111,9 @@ function reducer(state, action) {
     case 'ADD_DONOR': {
       const newDonor = {
         ...action.payload,
-        id: `D-${10000 + state.donors.length + 56}`,
-        registered: new Date().toISOString().split('T')[0],
-        notes: 'Demo record',
+        id: action.payload.id || `D-${10000 + state.donors.length + 56}`,
+        registered: action.payload.registered || new Date().toISOString().split('T')[0],
+        notes: action.payload.notes || 'Registered donor',
       };
       const actEntry = {
         id: `act-${Date.now()}`,
@@ -78,7 +132,7 @@ function reducer(state, action) {
       };
       return {
         ...state,
-        donors: [newDonor, ...state.donors],
+        donors: [newDonor, ...state.donors.filter(d => d.id !== newDonor.id)],
         activity: [actEntry, ...state.activity],
         notifications: [notif, ...state.notifications],
       };
@@ -100,15 +154,12 @@ function reducer(state, action) {
 
     // REQUESTS
     case 'ADD_REQUEST': {
-      const nextNum = state.requests.length > 0
-        ? parseInt(state.requests[0].id.replace('REQ-', '')) + 1
-        : 2025;
       const newReq = {
         ...action.payload,
-        id: `REQ-${nextNum}`,
-        status: 'pending',
-        createdAt: new Date().toISOString(),
-        requester: 'Demo User',
+        id: action.payload.id || `REQ-${Date.now() % 10000}`,
+        status: (action.payload.status || 'pending').toLowerCase(),
+        createdAt: action.payload.createdAt || new Date().toISOString(),
+        requester: action.payload.requester || 'Clinical Staff',
       };
       const actEntry = {
         id: `act-${Date.now()}`,
@@ -127,7 +178,7 @@ function reducer(state, action) {
       };
       return {
         ...state,
-        requests: [newReq, ...state.requests],
+        requests: [newReq, ...state.requests.filter(r => r.id !== newReq.id)],
         activity: [actEntry, ...state.activity],
         notifications: [notif, ...state.notifications],
       };
@@ -172,7 +223,7 @@ function reducer(state, action) {
       const actEntry = {
         id: `act-${Date.now()}`,
         type: 'stock_updated',
-        message: `${item?.group ?? ''} inventory updated to ${action.payload.changes.units} units`,
+        message: `${item?.group ?? item?.bloodGroup ?? ''} inventory updated to ${action.payload.changes.units} units`,
         time: new Date().toISOString(),
         severity: 'info',
       };
@@ -182,7 +233,7 @@ function reducer(state, action) {
         const notif = {
           id: `notif-${Date.now()}`,
           title: 'Low Stock Alert',
-          message: `${item?.group ?? ''} has fallen below the configured threshold`,
+          message: `${item?.group ?? item?.bloodGroup ?? ''} has fallen below the configured threshold`,
           time: new Date().toISOString(),
           read: false,
           type: 'warning',
@@ -237,6 +288,37 @@ const AppContext = createContext(null);
 export function AppProvider({ children }) {
   const [state, dispatch] = useReducer(reducer, null, buildInitialState);
 
+  // Initial load from Java REST API with seamless local fallback
+  useEffect(() => {
+    let active = true;
+    async function syncBackend() {
+      try {
+        const [donorsRes, invRes, reqsRes] = await Promise.all([
+          fetch(`${API_BASE_URL}/donors`),
+          fetch(`${API_BASE_URL}/inventory`),
+          fetch(`${API_BASE_URL}/requests`)
+        ]);
+        if (donorsRes.ok && invRes.ok && reqsRes.ok) {
+          const [donors, inventory, requests] = await Promise.all([
+            donorsRes.json(),
+            invRes.json(),
+            reqsRes.json()
+          ]);
+          if (active) {
+            dispatch({
+              type: 'INIT_FROM_API',
+              payload: { donors, inventory, requests }
+            });
+          }
+        }
+      } catch (_) {
+        // Backend offline or unreachable; smoothly use local state
+      }
+    }
+    syncBackend();
+    return () => { active = false; };
+  }, []);
+
   // Persist to localStorage on every state change
   useEffect(() => {
     try {
@@ -245,18 +327,97 @@ export function AppProvider({ children }) {
   }, [state]);
 
   const actions = {
-    updateInventory: useCallback((id, changes) =>
-      dispatch({ type: 'UPDATE_INVENTORY_WITH_LOG', payload: { id, changes } }), []),
-    addDonor: useCallback((donor) =>
-      dispatch({ type: 'ADD_DONOR', payload: donor }), []),
+    updateInventory: useCallback(async (id, changes) => {
+      const item = state.inventory.find(i => i.id === id);
+      if (item && changes.units !== undefined) {
+        const bg = item.group || item.bloodGroup;
+        try {
+          await fetch(`${API_BASE_URL}/inventory/${encodeURIComponent(bg)}/adjust`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ mode: 'set', units: Number(changes.units) })
+          });
+        } catch (_) {}
+      }
+      dispatch({ type: 'UPDATE_INVENTORY_WITH_LOG', payload: { id, changes } });
+    }, [state.inventory]),
+
+    addDonor: useCallback(async (donor) => {
+      try {
+        const res = await fetch(`${API_BASE_URL}/donors`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: donor.name,
+            bloodGroup: donor.bloodGroup,
+            city: donor.city,
+            phone: donor.phone || '',
+            availability: (donor.availability || 'available').toLowerCase(),
+            lastDonation: donor.lastDonation || null,
+            notes: donor.notes || 'Registered donor'
+          })
+        });
+        if (res.ok) {
+          const created = await res.json();
+          dispatch({ type: 'ADD_DONOR', payload: created });
+          return created;
+        }
+      } catch (_) {}
+      dispatch({ type: 'ADD_DONOR', payload: donor });
+    }, []),
+
     updateDonor: useCallback((id, changes) =>
       dispatch({ type: 'UPDATE_DONOR', payload: { id, changes } }), []),
-    deleteDonor: useCallback((id) =>
-      dispatch({ type: 'DELETE_DONOR', payload: { id } }), []),
-    addRequest: useCallback((req) =>
-      dispatch({ type: 'ADD_REQUEST', payload: req }), []),
-    updateRequest: useCallback((id, changes) =>
-      dispatch({ type: 'UPDATE_REQUEST', payload: { id, changes } }), []),
+
+    deleteDonor: useCallback(async (id) => {
+      try {
+        await fetch(`${API_BASE_URL}/donors/${encodeURIComponent(id)}`, {
+          method: 'DELETE'
+        });
+      } catch (_) {}
+      dispatch({ type: 'DELETE_DONOR', payload: { id } });
+    }, []),
+
+    addRequest: useCallback(async (req) => {
+      try {
+        const res = await fetch(`${API_BASE_URL}/requests`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            bloodGroup: req.bloodGroup,
+            units: Number(req.units),
+            hospital: req.hospital,
+            location: req.location,
+            urgency: (req.urgency || 'normal').toLowerCase(),
+            notes: req.notes || '',
+            requester: req.requester || 'Clinical Staff'
+          })
+        });
+        if (res.ok) {
+          const created = await res.json();
+          dispatch({ type: 'ADD_REQUEST', payload: created });
+          return created;
+        }
+      } catch (_) {}
+      dispatch({ type: 'ADD_REQUEST', payload: req });
+    }, []),
+
+    updateRequest: useCallback(async (id, changes) => {
+      if (changes && changes.status) {
+        try {
+          await fetch(`${API_BASE_URL}/requests/${encodeURIComponent(id)}/status`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              status: changes.status.toLowerCase(),
+              deductInventoryOnFulfillment: true
+            })
+          });
+        } catch (_) {}
+      }
+      dispatch({ type: 'UPDATE_REQUEST', payload: { id, changes } });
+    }, []),
+
     markNotificationRead: useCallback((id) =>
       dispatch({ type: 'MARK_NOTIFICATION_READ', payload: { id } }), []),
     markAllNotificationsRead: useCallback(() =>
@@ -270,12 +431,12 @@ export function AppProvider({ children }) {
   // Computed selectors
   const selectors = {
     totalDonors: state.donors.length,
-    availableDonors: state.donors.filter(d => d.availability === 'available').length,
-    totalUnits: state.inventory.reduce((s, i) => s + i.units, 0),
-    activeRequests: state.requests.filter(r => ['pending', 'reviewing', 'in_progress'].includes(r.status)).length,
-    fulfilledRequests: state.requests.filter(r => r.status === 'fulfilled').length,
+    availableDonors: state.donors.filter(d => (d.availability || '').toLowerCase() === 'available').length,
+    totalUnits: state.inventory.reduce((s, i) => s + (Number(i.units) || 0), 0),
+    activeRequests: state.requests.filter(r => ['pending', 'reviewing', 'in_progress'].includes((r.status || '').toLowerCase())).length,
+    fulfilledRequests: state.requests.filter(r => (r.status || '').toLowerCase() === 'fulfilled').length,
     lowStockGroups: state.inventory.filter(i => i.units > 0 && i.units <= i.lowThreshold),
-    criticalStockGroups: state.inventory.filter(i => i.units === 0),
+    criticalStockGroups: state.inventory.filter(i => Number(i.units) === 0),
     unreadNotifications: state.notifications.filter(n => !n.read).length,
   };
 
